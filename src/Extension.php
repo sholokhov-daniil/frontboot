@@ -6,6 +6,8 @@ use CJSCore;
 
 /**
  * Описывает js расширение
+ *
+ * @package Sholokhov\FrontBoot
  */
 class Extension
 {
@@ -15,6 +17,13 @@ class Extension
      * @var string
      */
     public readonly string $id;
+
+    /**
+     * Директория хранения расширения
+     *
+     * @var string
+     */
+    public readonly string $directory;
 
     /**
      * Полный путь до js файлов расширения
@@ -46,6 +55,13 @@ class Extension
     public bool $skipCore = false;
 
     /**
+     * Произвести автоматическую инициализацию расширения
+     *
+     * @var bool
+     */
+    public bool $autoInit = false;
+
+    /**
      * Ограничение области подключения расширения.
      * В качестве значения необходимо указать {@see CJSCore::USE_PUBLIC} или {@see CJSCore::USE_ADMIN}
      *
@@ -55,9 +71,11 @@ class Extension
 
     /**
      * @param string $id Уникальный идентификатор расширения
+     * @param string $directory Директория расширения
      */
-    public function __construct(string $id)
+    public function __construct(string $id, string $directory = '')
     {
         $this->id = $id;
+        $this->directory = $directory;
     }
 }
