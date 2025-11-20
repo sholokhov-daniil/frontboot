@@ -1,0 +1,38 @@
+{
+  "name": "sholokhov/frontboot",
+  "description": "Bitrix module for initializing and managing frontend frameworks (Vue.js, React, Angular, etc.)",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "bitrix",
+    "ui",
+    "js",
+    "loader",
+    "extension",
+    "javascript",
+    "framework",
+    "initialization",
+    "vue"
+  ],
+  "authors": [
+    {
+      "name": "Daniil Sholokhov",
+      "email": "sholokhovdaniil@yandex.ru",
+      "homepage": "https://github.com/sholokhov-daniil"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sholokhov-daniil/frontboot.git"
+  },
+  "require": {
+    "php": ">=8.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sholokhov\\Frontboot\\": "src"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
