@@ -88,6 +88,15 @@ $extension->js = $locator->getJs();
 // Полный путь до языкового файла расширения
 $extension->lang = $locator->getLang();
 
+// Пропустить инициализацию core.js
+$extension->skipCore = true;
+
+// Инициализировать после регистрации
+$extension->autoInit = true;
+
+// Ограничение области подключения расширения
+$extension->use = CJSCore::USE_PUBLIC;
+
 // Связанные расширения, которые должны инициализироваться до инициализации текущего расширения
 $extension->rel = [
     'ui.alerts'
