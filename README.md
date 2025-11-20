@@ -1,1 +1,103 @@
+# sholokhov.frontboot
+
+## Введение
+Библиотека позволяет инициализировать js фреймворки или свои модули.  
+Место размещения не регламентируется и выбирается индивидуально для каждого расширения.  
+Регистрация всех расширений производится через штатный механизм [CJSCore](https://dev.1c-bitrix.ru/api_help/js_lib/my_extension/index.php)
+
+## Системные требования
+- PHP 8.2 >
+- composer 1.0 >
+- bitrix 16.0 >
+
+## Пример регистрации
+```php
+use Sholokhov\FrontBoot\ExtensionRegistrar;
+
+$extensions = [
+    'extension_id_1' => '/var/www/example.ru/local/js/test1',
+    'extension_id_2' => '/var/www/example.ru/local/js/test2/'
+];
+
+ExtensionRegistrar::run($extensions);
+```
+
+### Формат данных
+В __ExtensionRegistrar::run__ мы обязаны передать массив следующего формата:  
+{EXTENSION_ID} => {EXTENSION_ROOT_PATH}
+
+- EXTENSION_ID - уникальный идентификатор расширения в рамках __CJSCore__
+- EXTENSION_ROOT_PATH - Путь до корневого каталога расширения
+
+### Примечание
+Путь до корневого каталога расширения не обязан иметь на конце разделитель каталогов
+
+```
+✅ Верно
+/var/www/example.ru/local/js/test1
+
+✅ Верно
+/var/www/example.ru/local/js/test2/
+```
+
+## Создание расширения
+
+### Структура
+```
+extension/  # Корневая директория расширения
+├── lang  # Папка с языковыми файлами
+│   ├── ru  # ID языка в системе bitrix
+│   │   └──  options.php  # Языковые фразы в конфигурационном файле
+│   ├── en  
+│   │   └──  options.php  
+└── options.php # Конфигурация расширения
+```
+#### Языковой файл
+Языковой файл представляет [штатную реализацию](https://dev.1c-bitrix.ru/learning/course/index.php?COURSE_ID=43&LESSON_ID=4789).
+
+```php
+<?php
+$MESS['UNIQUE_KEY'] = "Текст";
+```
+
+### Конфигурация
+Конфигурационный файл расширения должен размещаться в корне расширения с названием __options.php__.
+Каждый конфигурационный файл обязан вернуть объект конфигурации, для возможности его регистрации.
+
+```php
+use Sholokhov\FrontBoot\Extension;
+use Sholokhov\FrontBoot\Locator\BaseFrameworkLocator;
+
+/**
+ * @var string $id Идентификатор расширения
+ * @var string $directory Путь до корня расширения
+ */
+
+// Вспомогательный класс, для поиска всех js и css файлов
+$locator = new BaseFrameworkLocator($directory);
+
+// Объект конфигурации
+$extension = new Extension($id);
+
+// Полный путь до всех css файлов расширения
+$extension->css = $locator->getCss();
+
+// Польный путь до всех js файлов расширения
+$extension->js = $locator->getJs();
+
+// Полный путь до языкового файла расширения
+$extension->lang = $locator->getLang();
+
+// Связанные расширения, которые должны инициализироваться до инициализации текущего расширения
+$extension->rel = [
+    'ui.alerts'
+];
+
+// Возвращаем объект конфигурации, для его регистрации
+return $extension;
+```
+
+
+
+
 spl
