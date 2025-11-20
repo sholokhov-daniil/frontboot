@@ -48,17 +48,19 @@ abstract class AbstractLocator
      */
     public function getLang(): string
     {
-        return $this->getOption();
+        return self::getOption($this->rootDirectory);
     }
 
     /**
      * Путь до конфигурационного php файла
      *
+     * @param string $directory
      * @return string
      */
-    public function getOption(): string
+    public static function getOption(string $directory): string
     {
-        return $this->rootDirectory . DIRECTORY_SEPARATOR . 'options.php';
+        $directory = rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        return $directory . 'options.php';
     }
 
     /**
