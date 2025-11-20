@@ -10,7 +10,7 @@
 - composer 1.0 >
 - bitrix 16.0 >
 
-## Пример регистрации
+## Регистрации
 ```php
 use Sholokhov\FrontBoot\ExtensionRegistrar;
 
@@ -40,17 +40,17 @@ ExtensionRegistrar::run($extensions);
 /var/www/example.ru/local/js/test2/
 ```
 
-## Создание расширения
+## Создание
 
 ### Структура
 ```
 extension/  # Корневая директория расширения
-├── lang  # Папка с языковыми файлами
+├── lang  # Папка с языковыми файлами (не обязательно)
 │   ├── ru  # ID языка в системе bitrix
 │   │   └──  options.php  # Языковые фразы в конфигурационном файле
 │   ├── en  
 │   │   └──  options.php  
-└── options.php # Конфигурация расширения
+└── options.php # Конфигурация расширения (обязательно)
 ```
 #### Языковой файл
 Языковой файл представляет [штатную реализацию](https://dev.1c-bitrix.ru/learning/course/index.php?COURSE_ID=43&LESSON_ID=4789).
@@ -97,7 +97,19 @@ $extension->rel = [
 return $extension;
 ```
 
+## Инициализация
 
+Инициализация через php
+```php
+CJSCore::Init(['extension_id_1']);
+```
 
+Инициализация через js
+```js
+BX.loadExt('extension_id_1')
+    .then(() => {
+        // ...
+    })
+```
 
 spl
