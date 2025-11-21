@@ -128,7 +128,7 @@ $extension = new Extension($id);
 // Если есть js файлы
 $extension->js = ['path'];
 
-// Если есть css afqks
+// Если есть css файлы
 $extension->css = ['path'];
 
 return $extension;
