@@ -114,6 +114,25 @@ $extension->rel = [
 // Возвращаем объект конфигурации, для его регистрации
 return $extension;
 ```
+#### Минимальная рабочая версия конфигурации
+```php
+use Sholokhov\FrontBoot\Extension;
+
+/**
+ * @var string $id Идентификатор расширения
+ * @var string $directory Путь до корня расширения
+ */
+
+$extension = new Extension($id);
+
+// Если есть js файлы
+$extension->js = ['path'];
+
+// Если есть css afqks
+$extension->css = ['path'];
+
+return $extension;
+```
 
 ## Инициализация
 
