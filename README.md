@@ -129,5 +129,3 @@ BX.loadExt('extension_id_1')
         // ...
     })
 ```
-
-spl
