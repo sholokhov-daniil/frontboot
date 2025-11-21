@@ -10,7 +10,7 @@
 - composer 1.0 >
 - bitrix 16.0 >
 
-## Регистрации
+## Регистрация
 ```php
 use Sholokhov\FrontBoot\ExtensionRegistrar;
 
@@ -81,12 +81,22 @@ $extension = new Extension($id);
 
 // Полный путь до всех css файлов расширения
 $extension->css = $locator->getCss();
+// или
+$extension->css = [
+    $directory . 'style.css'
+];
 
 // Польный путь до всех js файлов расширения
 $extension->js = $locator->getJs();
+// или
+$extension->js = [
+    $directory . 'script.js'
+];
 
 // Полный путь до языкового файла расширения
 $extension->lang = $locator->getLang();
+// или
+$extension->lang = $directory . "lang/" . LANGUAGE_ID . "/options.php";
 
 // Пропустить инициализацию core.js
 $extension->skipCore = true;
