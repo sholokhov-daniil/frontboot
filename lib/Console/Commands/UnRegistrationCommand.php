@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Команда выполняющая разрегистрацию существующего расширения
  */
-#[AsCommand('unregistration', 'Разрегистрация расширения', ['unreg'])]
+#[AsCommand('unregistration', 'Разрегистрация расширения', ['unreg', 'del', 'delete'])]
 class UnRegistrationCommand extends Command
 {
     use InteractsWithOutTrait;

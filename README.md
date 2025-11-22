@@ -73,6 +73,24 @@ php ext registration --id="extension_id_1" --path="/var/www/example.ru/local/js/
 php ext create
 ```
 
+### Разрегистрация(удаление) расширения
+
+Позволяет разрегистрировать существующее расширение и при необходимости может удалить все исходные файлы
+
+```bash
+# Вместо {extension} необходимо указать существующий ID расширения
+php ext unregistration {extension}
+
+# или
+php ext unreg {extension}
+
+# или
+php ext del {extension}
+
+# или
+php ext delete {extension}
+```
+
 
 ## Создание расширения
 
