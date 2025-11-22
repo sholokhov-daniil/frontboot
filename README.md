@@ -52,6 +52,8 @@ php ext {command} --help
 
 ### Регистрация расширения
 
+Регистрирует расширение в системе и позволяет хранить его в произвольном месте.
+
 ```bash
 php ext reg -i "extension_id_1" -p "/var/www/example.ru/local/js/test1"
 
@@ -63,7 +65,18 @@ php ext registration --id="extension_id_1" --path="/var/www/example.ru/local/js/
 - **--id (-i)** — идентификатор расширения в CJSCore
 - **--path (-p)** — путь до корня расширения (без обязательного завершающего слэша)
 
+### Генерация расширения
+
+Автоматически создается зарегистрированная болванка вашего расширения
+
+```bash
+php ext create
+```
+
+
 ## Создание расширения
+
+Разберем ручное создание расширения 
 
 ### Структура папок
 
@@ -100,6 +113,8 @@ Loc::loadMessages(__FILE__);
 // Вспомогательный класс, для поиска всех js и css файлов
 $locator = new BaseFrameworkLocator(__DIR__);
 
+$dir = str_replace($_SERVER['DOCUMENT_ROOT'], '',  __DIR__);
+
 // Объект конфигурации
 $extension = new Config;
 
@@ -107,20 +122,20 @@ $extension = new Config;
 $extension->css = $locator->getCss();
 // или
 $extension->css = [
-    __DIR__ . '/style.css'
+    $dir . '/style.css'
 ];
 
 // Польный путь до всех js файлов расширения
 $extension->js = $locator->getJs();
 // или
 $extension->js = [
-    __DIR__ . '/script.js'
+    $dir . '/script.js'
 ];
 
 // Полный путь до языкового файла расширения
 $extension->lang = $locator->getLang();
 // или
-$extension->lang = $directory . "lang/" . LANGUAGE_ID . "/options.php";
+$extension->lang = $dir . "/lang/" . LANGUAGE_ID . "/options.php";
 
 // Пропустить инициализацию core.js
 $extension->skipCore = true;

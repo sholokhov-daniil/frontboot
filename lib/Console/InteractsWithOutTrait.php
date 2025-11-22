@@ -2,6 +2,8 @@
 
 namespace Sholokhov\FrontBoot\Console;
 
+use Stringable;
+
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
@@ -51,6 +53,44 @@ trait InteractsWithOutTrait
     public function ask(string $question, string $default = null, callable $validator = null): mixed
     {
         return $this->output->ask($question, $default, $validator);
+    }
+
+    /**
+     * @param string|Stringable|iterable $message
+     * @param int $minWidth
+     * @return void
+     */
+    public function frame(string|Stringable|iterable $message, int $minWidth = 0): void
+    {
+        if (!is_iterable($message)) {
+            $message = [(string)$message];
+        }
+
+        // Шаг 1: формируем финальный массив строк для рамки, включая переносы и отступы
+        $frameLines = [];
+        foreach ($message as $line) {
+            // Разбиваем по любому переносу
+            foreach (preg_split('/\r\n|\r|\n/', $line) as $sub) {
+                // Конвертируем табы в пробелы для визуальной стабильности
+                $frameLines[] = str_replace("\t", "    ", $sub);
+            }
+        }
+
+        // Шаг 2: ищем максимальную длину (учитываются отступы!)
+        $maxLen = $minWidth;
+        foreach ($frameLines as $line) {
+            $maxLen = max($maxLen, strlen($line));
+        }
+
+        $border = str_repeat('-', $maxLen + 2);
+
+        $this->output->writeln('');
+        $this->output->writeln('+' . $border . '+');
+        foreach ($frameLines as $line) {
+            $this->output->writeln('| ' . str_pad($line, $maxLen) . ' |');
+        }
+        $this->output->writeln('+' . $border . '+');
+        $this->output->writeln('');
     }
 
     /**
