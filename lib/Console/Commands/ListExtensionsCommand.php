@@ -33,9 +33,9 @@ class ListExtensionsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->output->table(
-            ['Name', 'Directory'],
+            ['Name', 'Directory', 'Description'],
             array_map(
-                fn(array $item) => [$item['ID'], $item['PATH']],
+                fn(array $item) => [$item['ID'], $item['PATH'], $item['DESCRIPTION']],
                 ExtensionTable::getList()->fetchAll()
             )
         );

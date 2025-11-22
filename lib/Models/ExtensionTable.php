@@ -31,6 +31,9 @@ class ExtensionTable extends DataManager
             (new Fields\TextField('PATH'))
                 ->configureRequired()
                 ->configureUnique(),
+
+            (new Fields\TextField('DESCRIPTION'))
+                ->configureDefaultValue(''),
         ];
     }
 }

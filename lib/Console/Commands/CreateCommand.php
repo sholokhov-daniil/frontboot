@@ -38,6 +38,8 @@ class CreateCommand extends Command
             $id = (string)$this->ask('Extension name');
         } while (!mb_strlen($id));
 
+        $description = $this->ask('Extension description');
+
         $extensionDir = null;
 
         try {
@@ -71,6 +73,7 @@ class CreateCommand extends Command
             $result = ExtensionTable::add([
                 'ID' => $id,
                 'PATH' => $extensionDir->getPath(),
+                'DESCRIPTION' => $description,
             ]);
 
             if (!$result->isSuccess()) {

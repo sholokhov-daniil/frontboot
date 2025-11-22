@@ -39,6 +39,7 @@ class RegistrationCommand extends Command
             $path = (string)$this->ask('The path to the root folder of the extension' . PHP_EOL . ' Example: /var/www/web.ru/js/my_extenstion_folder');
         } while (!$path);
 
+        $description = $this->ask('Extension description');
 
         if (!is_dir($path)) {
             $this->error('The directory was not found');
@@ -60,6 +61,7 @@ class RegistrationCommand extends Command
         $result = ExtensionTable::add([
             'ID' => $id,
             'PATH' => $path,
+            'DESCRIPTION' => $description,
         ]);
 
         if (!$result->isSuccess()) {
