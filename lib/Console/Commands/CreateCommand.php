@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Команда выполняющая создание нового расширения
  */
-#[AsCommand('create', 'Создание нового расширения')]
+#[AsCommand('create', 'Creating a new extension')]
 class CreateCommand extends Command
 {
     use InteractsWithOutTrait;

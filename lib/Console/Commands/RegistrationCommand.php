@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Команда выполняющая регистрацию нового расширения
  */
-#[AsCommand('registration', 'Регистрация расширения', ['reg'])]
+#[AsCommand('registration', 'Registering an extension', ['reg'])]
 class RegistrationCommand extends Command
 {
     use InteractsWithOutTrait;
