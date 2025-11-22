@@ -19,9 +19,6 @@ class Kernel
 {
     /**
      * @return void
-     * @throws ArgumentException
-     * @throws ObjectPropertyException
-     * @throws SystemException
      */
     public function run(): void
     {
