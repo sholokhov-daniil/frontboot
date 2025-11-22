@@ -5,6 +5,7 @@ return [
         'value' => [
             \Sholokhov\FrontBoot\Console\Commands\RegistrationCommand::class,
             \Sholokhov\FrontBoot\Console\Commands\CreateCommand::class,
+            \Sholokhov\FrontBoot\Console\Commands\UnRegistrationCommand::class,
         ]
     ]
 ];

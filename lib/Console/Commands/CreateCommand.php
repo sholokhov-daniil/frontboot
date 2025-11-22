@@ -2,9 +2,7 @@
 
 namespace Sholokhov\FrontBoot\Console\Commands;
 
-use Bitrix\Main\Diag\Debug;
 use CJSCore;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Throwable;
 use ErrorException;
 
@@ -20,7 +18,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Команда выполняющая регистрацию нового расширения
+ * Команда выполняющая создание нового расширения
  */
 #[AsCommand('create', 'Создание нового расширения')]
 class CreateCommand extends Command
@@ -45,13 +43,13 @@ class CreateCommand extends Command
         try {
             // Создать директорию, для расширения
             if (CJSCore::IsExtRegistered($id)) {
-                $this->error('Расширение уже зарегистрировано');
+                $this->error('The extension has already been registered');
                 return self::FAILURE;
             }
 
             $directory = $this->getFrontBootDirectory();
             if (!$directory) {
-                $this->error('Ошибка создания директории с расширениями');
+                $this->error('Error creating a directory with extensions');
                 return self::FAILURE;
             }
 
@@ -65,7 +63,7 @@ class CreateCommand extends Command
             );
 
             if (!$result) {
-                $this->error('Ошибка генерации расширения');
+                $this->error('Error generating the extension');
                 $extensionDir->delete();
                 return self::FAILURE;
             }

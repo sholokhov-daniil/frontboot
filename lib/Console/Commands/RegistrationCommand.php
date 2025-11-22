@@ -55,19 +55,19 @@ class RegistrationCommand extends Command
         $path = (string)$input->getOption('path');
 
         if (!is_dir($path)) {
-            $this->error('Директория не найдена');
+            $this->error('The directory was not found');
             return self::FAILURE;
         }
 
         $extension = ConfigurationBuilder::create($path);
 
         if ($extension === null) {
-            $this->error('Отсутствует конфигурационный файл');
+            $this->error('The configuration file is missing');
             return self::FAILURE;
         }
 
         if (CJSCore::IsExtRegistered($id)) {
-            $this->error('Расширение уже зарегистрировано');
+            $this->error('The extension has already been registered');
             return self::FAILURE;
         }
 
