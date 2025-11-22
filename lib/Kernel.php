@@ -3,6 +3,7 @@
 namespace Sholokhov\FrontBoot;
 
 use CJSCore;
+use Throwable;
 
 use Sholokhov\FrontBoot\Models\ExtensionTable;
 use Sholokhov\FrontBoot\Builder\ConfigurationBuilder;
@@ -24,29 +25,33 @@ class Kernel
      */
     public function run(): void
     {
-        $iterator = $this->getExtensions();
-        $autoload = [];
+        try {
+            $iterator = $this->getExtensions();
+            $autoload = [];
 
-        foreach ($iterator as $extension) {
-            if (CJSCore::isExtensionLoaded($extension['ID'])) {
-                continue;
+            foreach ($iterator as $extension) {
+                if (CJSCore::isExtensionLoaded($extension['ID'])) {
+                    continue;
+                }
+
+                $config = ConfigurationBuilder::create($extension['PATH']);
+
+                if ($config === null) {
+                    continue;
+                }
+
+                $this->registration($extension['ID'], $config);
+
+                if ($config->autoload) {
+                    $autoload[] = $extension['ID'];
+                }
             }
 
-            $config = ConfigurationBuilder::create($extension['PATH']);
-
-            if ($config === null) {
-                continue;
+            if (!empty($autoload)) {
+                CJSCore::Init($autoload);
             }
-
-            $this->registration($extension['ID'], $config);
-
-            if ($config->autoload) {
-                $autoload[] = $extension['ID'];
-            }
-        }
-
-        if (!empty($autoload)) {
-            CJSCore::Init($autoload);
+        } catch (Throwable $throwable) {
+            AddMessage2Log($throwable);
         }
     }
 
