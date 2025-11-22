@@ -87,7 +87,7 @@ class CreateCommand extends Command
         }
 
 
-        $lines = [
+        $this->frame([
             " Success!",
             " Extension $id created",
             "",
@@ -99,9 +99,7 @@ class CreateCommand extends Command
             "",
             " Extension Directory",
             " {$extensionDir->getPath()}"
-        ];
-
-        $this->frame($lines, 80);
+        ]);
 
         return self::SUCCESS;
     }

@@ -55,15 +55,15 @@ php ext {command} --help
 Регистрирует расширение в системе и позволяет хранить его в произвольном месте.
 
 ```bash
-php ext reg -i "extension_id_1" -p "/var/www/example.ru/local/js/test1"
+php ext reg
 
 # или
-php ext registration --id="extension_id_1" --path="/var/www/example.ru/local/js/test1"
+php ext registration
 ```
 
-Опции команды:
-- **--id (-i)** — идентификатор расширения в CJSCore
-- **--path (-p)** — путь до корня расширения (без обязательного завершающего слэша)
+После вызова команды нам потребуется указать идентификатор расширения и путь до корня расширения (без обязательного завершающего слэша)
+
+![logo](doc/reg_extension.png)
 
 ### Генерация расширения
 

@@ -24,26 +24,6 @@ class RegistrationCommand extends Command
     use InteractsWithOutTrait;
 
     /**
-     * @return void
-     */
-    protected function configure(): void
-    {
-        $this->addOption(
-            'id',
-            'i',
-            InputOption::VALUE_REQUIRED,
-            'Идентификатор расширения'
-        );
-
-        $this->addOption(
-            'path',
-            'p',
-            InputOption::VALUE_REQUIRED,
-            'Путь до корневой папки расширения'
-        );
-    }
-
-    /**
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return int
@@ -51,8 +31,14 @@ class RegistrationCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $id = (string)$input->getOption('id');
-        $path = (string)$input->getOption('path');
+        do {
+            $id = (string)$this->ask('Extension name');
+        } while (!$id);
+
+        do {
+            $path = (string)$this->ask('The path to the root folder of the extension' . PHP_EOL . ' Example: /var/www/web.ru/js/my_extenstion_folder');
+        } while (!$path);
+
 
         if (!is_dir($path)) {
             $this->error('The directory was not found');
@@ -84,6 +70,20 @@ class RegistrationCommand extends Command
 
             return self::FAILURE;
         }
+
+        $this->frame([
+            " Success!",
+            " Extension $id registered",
+            "",
+            " Include extension in php",
+            " CJSCore::Init(['$id']);",
+            "",
+            " Include extension in js",
+            " BX.loadExt('$id').then(() => {\n     // The code after loading\n });",
+            "",
+            " Extension Directory",
+            " $path"
+        ]);
 
         return self::SUCCESS;
     }
