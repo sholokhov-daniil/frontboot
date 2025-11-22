@@ -3,6 +3,7 @@
 namespace Sholokhov\FrontBoot\Console\Commands;
 
 use CJSCore;
+use Sholokhov\FrontBoot\Validator\ExtensionNameValidator;
 use Throwable;
 use ErrorException;
 
@@ -35,8 +36,13 @@ class CreateCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         do {
-            $id = (string)$this->ask('Extension name');
-        } while (!mb_strlen($id));
+            $name = (string)$this->ask('Extension name');
+
+            if (!ExtensionNameValidator::validate($name)) {
+                $this->warning('Extension name is invalid');
+                $name = '';
+            }
+        } while (!mb_strlen($name));
 
         $description = $this->ask('Extension description');
 
@@ -44,7 +50,7 @@ class CreateCommand extends Command
 
         try {
             // Создать директорию, для расширения
-            if (CJSCore::IsExtRegistered($id)) {
+            if (CJSCore::IsExtRegistered($name)) {
                 $this->error('The extension has already been registered');
                 return self::FAILURE;
             }
@@ -55,7 +61,7 @@ class CreateCommand extends Command
                 return self::FAILURE;
             }
 
-            $extensionDir = $this->createExtensionDirectory($directory, $id);
+            $extensionDir = $this->createExtensionDirectory($directory, $name);
 
             $result = CopyDirFiles(
                 dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'examples' . DIRECTORY_SEPARATOR . 'extension',
@@ -71,7 +77,7 @@ class CreateCommand extends Command
             }
 
             $result = ExtensionTable::add([
-                'ID' => $id,
+                'ID' => $name,
                 'PATH' => $extensionDir->getPath(),
                 'DESCRIPTION' => $description,
             ]);
@@ -92,13 +98,13 @@ class CreateCommand extends Command
 
         $this->frame([
             " Success!",
-            " Extension $id created",
+            " Extension $name created",
             "",
             " Include extension in php",
-            " CJSCore::Init(['$id']);",
+            " CJSCore::Init(['$name']);",
             "",
             " Include extension in js",
-            " BX.loadExt('$id').then(() => {\n     // The code after loading\n });",
+            " BX.loadExt('$name').then(() => {\n     // The code after loading\n });",
             "",
             " Extension Directory",
             " {$extensionDir->getPath()}"

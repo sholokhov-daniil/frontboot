@@ -9,6 +9,7 @@ use Sholokhov\FrontBoot\Builder\ConfigurationBuilder;
 use Sholokhov\FrontBoot\Models\ExtensionTable;
 use Sholokhov\FrontBoot\Console\InteractsWithOutTrait;
 
+use Sholokhov\FrontBoot\Validator\ExtensionNameValidator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,8 +33,13 @@ class RegistrationCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         do {
-            $id = (string)$this->ask('Extension name');
-        } while (!$id);
+            $name = (string)$this->ask('Extension name');
+
+            if (!ExtensionNameValidator::validate($name)) {
+                $this->warning('Extension name is invalid');
+                $name = '';
+            }
+        } while (!$name);
 
         do {
             $path = (string)$this->ask('The path to the root folder of the extension' . PHP_EOL . ' Example: /var/www/web.ru/js/my_extenstion_folder');
@@ -53,13 +59,13 @@ class RegistrationCommand extends Command
             return self::FAILURE;
         }
 
-        if (CJSCore::IsExtRegistered($id)) {
+        if (CJSCore::IsExtRegistered($name)) {
             $this->error('The extension has already been registered');
             return self::FAILURE;
         }
 
         $result = ExtensionTable::add([
-            'ID' => $id,
+            'ID' => $name,
             'PATH' => $path,
             'DESCRIPTION' => $description,
         ]);
@@ -75,13 +81,13 @@ class RegistrationCommand extends Command
 
         $this->frame([
             " Success!",
-            " Extension $id registered",
+            " Extension $name registered",
             "",
             " Include extension in php",
-            " CJSCore::Init(['$id']);",
+            " CJSCore::Init(['$name']);",
             "",
             " Include extension in js",
-            " BX.loadExt('$id').then(() => {\n     // The code after loading\n });",
+            " BX.loadExt('$name').then(() => {\n     // The code after loading\n });",
             "",
             " Extension Directory",
             " $path"
