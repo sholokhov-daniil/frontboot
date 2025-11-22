@@ -1,5 +1,7 @@
-# sholokhov.frontboot
 
+![logo](doc/logo.png)
+
+# FrontBoot - менеджер расширений бля Bitrix
 Библиотека для удобной инициализации JavaScript-фреймворков и пользовательских модулей в Bitrix с использованием стандартного механизма [CJSCore](https://dev.1c-bitrix.ru/api_help/js_lib/my_extension/index.php). 
 Модуль позволяет централизованно регистрировать и управлять расширениями, упрощая организацию фронтенда.
 
