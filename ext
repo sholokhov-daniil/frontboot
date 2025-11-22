@@ -1,0 +1,22 @@
+#!/usr/bin/env php
+<?php
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+
+use Bitrix\Main\Config\Configuration;
+
+$_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__, 3);
+
+require_once($_SERVER['DOCUMENT_ROOT'] . "/bitrix/modules/main/include/prolog_before.php");
+
+$app = new Application;
+$config = Configuration::getInstance('sholokhov.frontboot');
+
+foreach ($config->get('commands') as $command) {
+    if (is_subclass_of($command, Command::class)) {
+        $app->add(new $command);
+    }
+}
+
+$app->run();

@@ -2,6 +2,8 @@
 
 namespace Sholokhov\FrontBoot\Locator;
 
+use Throwable;
+
 /**
  * Реализует механизм поиска скомпилированных ресурсов расширения,
  * таких как js и css файлы.
@@ -26,8 +28,15 @@ class BaseFrameworkLocator extends AbstractLocator
      */
     public function getJs(): array
     {
-        $path = $this->getDistSubFolder('js');
-        return $this->getFiles($path);
+        $files = [];
+
+        try {
+            $path = $this->getDistSubFolder('js');
+            $files = $this->getFiles($path);
+        } catch (Throwable $e) {
+        }
+
+        return $files;
     }
 
     /**
@@ -37,8 +46,15 @@ class BaseFrameworkLocator extends AbstractLocator
      */
     public function getCss(): array
     {
-        $path = $this->getDistSubFolder('css');
-        return $this->getFiles($path);
+        $files = [];
+
+        try {
+            $path = $this->getDistSubFolder('css');
+            $files = $this->getFiles($path);
+        } catch (Throwable) {
+        }
+
+        return $files;
     }
 
     /**

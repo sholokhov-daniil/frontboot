@@ -9,22 +9,8 @@ use CJSCore;
  *
  * @package Sholokhov\FrontBoot
  */
-class Extension
+class Config
 {
-    /**
-     * Уникальный идентификатор расширения
-     *
-     * @var string
-     */
-    public readonly string $id;
-
-    /**
-     * Директория хранения расширения
-     *
-     * @var string
-     */
-    public readonly string $directory;
-
     /**
      * Полный путь до js файлов расширения
      *
@@ -66,7 +52,7 @@ class Extension
      *
      * @var bool
      */
-    public bool $autoInit = false;
+    public bool $autoload = false;
 
     /**
      * Ограничение области подключения расширения.
@@ -75,14 +61,4 @@ class Extension
      * @var string|null
      */
     public string|null $use = null;
-
-    /**
-     * @param string $id Уникальный идентификатор расширения
-     * @param string $directory Директория расширения
-     */
-    public function __construct(string $id, string $directory = '')
-    {
-        $this->id = $id;
-        $this->directory = $directory;
-    }
 }

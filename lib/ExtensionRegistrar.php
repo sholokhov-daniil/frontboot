@@ -3,7 +3,7 @@
 namespace Sholokhov\FrontBoot;
 
 use CJSCore;
-use Sholokhov\FrontBoot\Locator\AbstractLocator;
+use Sholokhov\FrontBoot\Builder\ConfigurationBuilder;
 
 class ExtensionRegistrar
 {
@@ -16,16 +16,9 @@ class ExtensionRegistrar
     public static function run(array $extensions): void
     {
         foreach ($extensions as $id => $directory) {
-            $directory = rtrim($directory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-            $optionPath = AbstractLocator::getOption($directory);
+            $extension = ConfigurationBuilder::create($directory);
 
-            if (!file_exists($optionPath)) {
-                return;
-            }
-
-            $extension = @include $optionPath;
-
-            if (!($extension instanceof Extension)) {
+            if (!$extension) {
                 return;
             }
 
