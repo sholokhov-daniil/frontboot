@@ -130,14 +130,21 @@ $MESS['UNIQUE_KEY'] = "Текст";
 
 ```php
 use Sholokhov\FrontBoot\Config;
-use Bitrix\Main\Localization\Loc;
+use Sholokhov\FrontBoot\Locator\BaseLocator;
 use Sholokhov\FrontBoot\Locator\BaseFrameworkLocator;
+use Bitrix\Main\Localization\Loc;
+
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
+    die();
+}
 
 // Инициализируем языковые файлы
 Loc::loadMessages(__FILE__);
 
 // Вспомогательный класс, для поиска всех js и css файлов
 $locator = new BaseFrameworkLocator(__DIR__);
+// или (если в корне лежит папка js и css)
+$locator = new BaseLocator(__DIR__);
 
 $dir = str_replace($_SERVER['DOCUMENT_ROOT'], '',  __DIR__);
 
@@ -186,6 +193,10 @@ return $extension;
 ```php
 use Sholokhov\FrontBoot\Config;
 
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
+    die();
+}
+
 $extension = new Config;
 
 // Если есть js файлы
@@ -215,12 +226,30 @@ BX.loadExt('extension_id').then(() => {
 });
 ```
 
+## Вспомогательные инструменты
+
+Для упрощения взаимодействия с BX js был разработан глобальный объект ``FrontBoot``.  
+``FrontBoot`` инициализируется автоматически при старте страницы, но порядок его загрузки не гарантирован, и для этого рекомендуем в ``option.php`` вашего расширения указать связь в ``rel``.  
+При использовании консольной команды ``php ext create`` связь указывается автоматически.
+
+```php
+# options.php
+
+$extension->rel = [
+    'frontboot.core'
+];
+```
+
+
 ## Многоязычность
 
 На уровне JavaScript мы можем работать с языковыми файлами, которые мы создали в папке ``lang``.  
 Они автоматически инициализируются и доступны в коде.
 
 ```js
+FrontBoot.getMessage('MY_LANG');
+
+// или
 BX.message('MY_LANG');
 
 // или
@@ -234,8 +263,11 @@ BX.Loc.getMessage('MY_LANG');
 При работе с языковыми файлами рекомендует использовать объект ``BX.Loc``
 
 ```js
-const key = "MSG_KEY";
 let message;
+const key = "MSG_KEY";
+
+// ✅ Безопасно (рекомендуем)
+message = FrontBoot.getMessage(key);
 
 // ✅ Безопасно
 if (BX.Loc.hasMessage(key)) {

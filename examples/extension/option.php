@@ -1,14 +1,22 @@
 <?php
 
 use Sholokhov\FrontBoot\Config;
-use Bitrix\Main\Localization\Loc;
 use Sholokhov\FrontBoot\Locator\BaseFrameworkLocator;
+
+use Bitrix\Main\Localization\Loc;
+
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
+    die();
+}
 
 // Инициализируем языковые файлы
 Loc::loadMessages(__FILE__);
 
-// Вспомогательный класс, для поиска всех js и css файлов
+// Вспомогательный класс, для поиска всех js и css файлов (если компилируется в dist)
 $locator = new BaseFrameworkLocator(__DIR__);
+
+// Вспомогательный класс, для поиска всех js и css файлов. (если корне папка js, где хранятся скрипты)
+//$locator = new \Sholokhov\FrontBoot\Locator\BaseLocator(__DIR__);
 
 // Объект конфигурации
 $extension = new Config;
@@ -29,7 +37,9 @@ $extension->skipCore = false;
 $extension->autoload = false;
 
 // Связанные расширения, которые должны инициализироваться до инициализации текущего расширения
-$extension->rel = [];
+$extension->rel = [
+    'frontboot.core'
+];
 
 // Возвращаем объект конфигурации, для его регистрации
 return $extension;

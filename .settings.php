@@ -7,6 +7,13 @@ return [
             \Sholokhov\FrontBoot\Console\Commands\CreateCommand::class,
             \Sholokhov\FrontBoot\Console\Commands\UnRegistrationCommand::class,
             \Sholokhov\FrontBoot\Console\Commands\ListExtensionsCommand::class,
-        ]
+        ],
+        'readonly' => true,
+    ],
+    'extensions' => [
+        'value' => [
+            'frontboot.core' => __DIR__ . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'core',
+        ],
+        'readonly' => true,
     ]
 ];

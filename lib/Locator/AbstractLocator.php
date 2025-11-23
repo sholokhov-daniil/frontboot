@@ -2,13 +2,12 @@
 
 namespace Sholokhov\FrontBoot\Locator;
 
-use Bitrix\Main\Application;
-use Bitrix\Main\Context;
-use Bitrix\Main\Diag\Debug;
+use SplFileInfo;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use SplFileInfo;
+
+use Bitrix\Main\Application;
 
 /**
  * Производит поиск всех необходимых файлов, для инициализации расширения
@@ -29,7 +28,7 @@ abstract class AbstractLocator
      */
     public function __construct(string $rootDirectory)
     {
-        $this->rootDirectory = $rootDirectory;
+        $this->rootDirectory = rtrim($rootDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -54,8 +53,7 @@ abstract class AbstractLocator
     public function getLang(): string
     {
         $lang = LANGUAGE_ID ?: 'ru';
-        $directory = rtrim($this->rootDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        $directory .= 'lang' . DIRECTORY_SEPARATOR . $lang . DIRECTORY_SEPARATOR . 'option.php';
+        $directory = $this->rootDirectory . 'lang' . DIRECTORY_SEPARATOR . $lang . DIRECTORY_SEPARATOR . 'option.php';
 
         return $this->modifyPath($directory);
     }
@@ -98,7 +96,8 @@ abstract class AbstractLocator
                 continue;
             }
 
-            $result[] = $this->modifyPath($file->getPath());
+
+            $result[] = $this->modifyPath($file->getRealPath());
         }
 
         return $result;
