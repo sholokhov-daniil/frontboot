@@ -2,6 +2,7 @@
 
 namespace Sholokhov\FrontBoot;
 
+use Bitrix\Main\Localization\Loc;
 use CJSCore;
 use Sholokhov\FrontBoot\Builder\ConfigurationBuilder;
 
@@ -37,6 +38,10 @@ class ExtensionRegistrar
                     'use' => $extension->use,
                 ]
             );
+
+            if ($extension->lang) {
+                Loc::loadLanguageFile($extension->lang);
+            }
         }
     }
 }

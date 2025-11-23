@@ -53,7 +53,11 @@ abstract class AbstractLocator
      */
     public function getLang(): string
     {
-        return self::getOption($this->rootDirectory);
+        $lang = LANGUAGE_ID ?: 'ru';
+        $directory = rtrim($this->rootDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        $directory .= 'lang' . DIRECTORY_SEPARATOR . $lang . DIRECTORY_SEPARATOR . 'option.php';
+
+        return $this->modifyPath($directory);
     }
 
     /**
@@ -81,8 +85,6 @@ abstract class AbstractLocator
     {
         $result = [];
 
-        $documentRoot = Application::getDocumentRoot();
-
         $iterator = new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS);
         $files = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::LEAVES_ONLY);
 
@@ -96,9 +98,20 @@ abstract class AbstractLocator
                 continue;
             }
 
-            $result[] = str_replace($documentRoot, '', $file->getRealPath());
+            $result[] = $this->modifyPath($file->getPath());
         }
 
         return $result;
+    }
+
+    /**
+     * Удаление из пути document root
+     *
+     * @param string $path
+     * @return string
+     */
+    protected function modifyPath(string $path): string
+    {
+        return str_replace(Application::getDocumentRoot(), '', $path);
     }
 }
