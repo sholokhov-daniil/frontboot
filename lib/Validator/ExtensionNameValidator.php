@@ -13,6 +13,6 @@ class ExtensionNameValidator
      */
     public static function validate(string $name): bool
     {
-        return preg_match('/(?=.*\s)(?=.*[\p{Cyrillic}])(?=.*[^a-zA-Z0-9\s])/u', $name);
+        return preg_match('/^(?!frontboot\.)[A-Za-z0-9._-]+$/u', $name);
     }
 }
