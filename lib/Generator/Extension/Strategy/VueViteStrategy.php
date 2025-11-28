@@ -2,16 +2,23 @@
 
 namespace Sholokhov\FrontBoot\Generator\Extension\Strategy;
 
-use Bitrix\Main\Error;
-use Bitrix\Main\IO\Directory;
-use Bitrix\Main\Result;
 use Sholokhov\FrontBoot\Console\Terminal;
 use Sholokhov\FrontBoot\Generator\Extension\ExtensionGeneratorInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
+
+use Bitrix\Main\Error;
+use Bitrix\Main\Result;
+use Bitrix\Main\IO\Directory;
+
 use Symfony\Component\Process\Process;
 
+/**
+ * Генерирует Vue vite расширение
+ */
 class VueViteStrategy implements ExtensionGeneratorInterface
 {
+    /**
+     * @var Terminal
+     */
     protected readonly Terminal $terminal;
 
     public function __construct()
@@ -19,11 +26,15 @@ class VueViteStrategy implements ExtensionGeneratorInterface
         $this->terminal = new Terminal;
     }
 
-    public function generate(Directory $directory, string $name): Result
+    /**
+     * @param Directory $directory
+     * @return Result
+     */
+    public function generate(Directory $directory): Result
     {
         $result = new Result;
 
-        $process = $this->run($directory, $name);
+        $process = $this->run($directory);
 
         if ($process->getStatus() === Process::ERR) {
             return $result->addError(new Error('Error installed: ' . $process->getErrorOutput()));
@@ -36,12 +47,11 @@ class VueViteStrategy implements ExtensionGeneratorInterface
      * Запустить генерацию
      *
      * @param Directory $directory
-     * @param string $name
      * @return Process
      */
-    protected function run(Directory $directory, string $name): Process
+    protected function run(Directory $directory): Process
     {
-        $command = $this->getCommand($directory, $name);
+        $command = $this->getCommand($directory);
         return $this->terminal->command($command);
     }
 
@@ -49,15 +59,14 @@ class VueViteStrategy implements ExtensionGeneratorInterface
      * Создает консольную команду, для запуска установки vue vite
      *
      * @param Directory $directory
-     * @param string $name
      * @return string
      */
-    protected function getCommand(Directory $directory, string $name): string
+    protected function getCommand(Directory $directory): string
     {
         return sprintf(
             "cd %s && yes | npm create vue@latest %s -- --default",
-            escapeshellarg($directory->getPhysicalPath()),
-            $name
+            escapeshellarg(dirname($directory->getPhysicalPath())),
+            $directory->getName()
         );
     }
 }

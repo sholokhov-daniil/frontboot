@@ -40,6 +40,16 @@ class App
     }
 
     /**
+     * Корневая директория модуля
+     *
+     * @return Directory
+     */
+    public static function getRootDir(): Directory
+    {
+        return new Directory(dirname(__DIR__));
+    }
+
+    /**
      * Конфигурация модуля
      *
      * @return Configuration

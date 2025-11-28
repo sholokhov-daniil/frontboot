@@ -2,23 +2,17 @@
 
 namespace Sholokhov\FrontBoot\Console\Commands;
 
-use Bitrix\Main\Diag\Debug;
 use CJSCore;
+use Throwable;
+use ErrorException;
+
 use Sholokhov\FrontBoot\App;
 use Sholokhov\FrontBoot\Generator\Extension\ExtensionGeneratorInterface;
 use Sholokhov\FrontBoot\Generator\Extension\GeneratorFactory;
 use Sholokhov\FrontBoot\Validator\ExtensionNameValidator;
-use Symfony\Component\Console\Cursor;
-use Symfony\Component\Console\Helper\ProgressIndicator;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
-use Symfony\Component\Console\Output\ConsoleSectionOutput;
-use Throwable;
-use ErrorException;
-
 use Sholokhov\FrontBoot\Models\ExtensionTable;
 use Sholokhov\FrontBoot\Console\InteractsWithOutTrait;
 
-use Bitrix\Main\Application;
 use Bitrix\Main\IO\Directory;
 
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -48,7 +42,6 @@ class CreateCommand extends Command
         $extensionDir = null;
 
         try {
-            // TODO: Добавить резервирование
             if (CJSCore::IsExtRegistered($name)) {
                 $this->error('The extension has already been registered');
                 return self::FAILURE;
@@ -76,7 +69,7 @@ class CreateCommand extends Command
                 'It may take some time...'
             ]);
 
-            $result = $generator->generate($directory, $name);
+            $result = $generator->generate($extensionDir);
 
             if (!$result->isSuccess()) {
                 $this->error($result->getErrorMessages());
@@ -101,7 +94,6 @@ class CreateCommand extends Command
             $extensionDir?->delete();
             throw $exception;
         }
-
 
         $this->frame([
             " Success!",
@@ -146,13 +138,12 @@ class CreateCommand extends Command
      */
     private function choiceType(): string
     {
+        $generators = App::config()->get('extension-generators') ?: [];
+
         return (string)$this->output->choice(
             "Тип установки",
-            [
-                'clean',
-                'vue vite'
-            ],
-            'clean'
+            array_keys($generators),
+            array_key_first($generators),
         );
     }
 
