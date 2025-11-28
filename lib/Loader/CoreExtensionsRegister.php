@@ -2,7 +2,7 @@
 
 namespace Sholokhov\FrontBoot\Loader;
 
-use Bitrix\Main\Config\Configuration;
+use Sholokhov\FrontBoot\App;
 
 /**
  * Регистрирует системные расширения
@@ -13,7 +13,7 @@ class CoreExtensionsRegister extends AbstractExtensionRegister
     protected function getSource(): iterable
     {
         $result = [];
-        $iterator = Configuration::getInstance('sholokhov.frontboot')->get('extensions') ?: [];
+        $iterator = App::config()->get('extensions') ?: [];
 
         foreach ($iterator as $key => $value) {
             $result[] = [

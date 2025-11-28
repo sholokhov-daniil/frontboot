@@ -2,8 +2,16 @@
 
 namespace Sholokhov\FrontBoot\Console\Commands;
 
+use Bitrix\Main\Diag\Debug;
 use CJSCore;
+use Sholokhov\FrontBoot\App;
+use Sholokhov\FrontBoot\Generator\Extension\ExtensionGeneratorInterface;
+use Sholokhov\FrontBoot\Generator\Extension\GeneratorFactory;
 use Sholokhov\FrontBoot\Validator\ExtensionNameValidator;
+use Symfony\Component\Console\Cursor;
+use Symfony\Component\Console\Helper\ProgressIndicator;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Console\Output\ConsoleSectionOutput;
 use Throwable;
 use ErrorException;
 
@@ -35,27 +43,18 @@ class CreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        do {
-            $name = (string)$this->ask('Extension name');
-
-            if (!ExtensionNameValidator::validate($name)) {
-                $this->warning('Extension name is invalid');
-                $name = '';
-            }
-        } while (!mb_strlen($name));
-
-        $description = $this->ask('Extension description');
-
+        $name = $this->askName();
+        $description = (string)$this->ask('Description');
         $extensionDir = null;
 
         try {
-            // Создать директорию, для расширения
+            // TODO: Добавить резервирование
             if (CJSCore::IsExtRegistered($name)) {
                 $this->error('The extension has already been registered');
                 return self::FAILURE;
             }
 
-            $directory = $this->getFrontBootDirectory();
+            $directory = App::getJsDirectory();
             if (!$directory) {
                 $this->error('Error creating a directory with extensions');
                 return self::FAILURE;
@@ -63,15 +62,24 @@ class CreateCommand extends Command
 
             $extensionDir = $this->createExtensionDirectory($directory, $name);
 
-            $result = CopyDirFiles(
-                dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'examples' . DIRECTORY_SEPARATOR . 'extension',
-                $extensionDir->getPhysicalPath(),
-                true,
-                true
-            );
+            $type = $this->choiceType();
+            $generator = $this->createGenerator($type);
 
-            if (!$result) {
-                $this->error('Error generating the extension');
+            if (!$generator) {
+                $this->error('Installer not found');
+                $extensionDir->delete();
+                return self::FAILURE;
+            }
+
+            $this->info([
+                sprintf('The generation of the %s extension has been started', $type),
+                'It may take some time...'
+            ]);
+
+            $result = $generator->generate($directory, $name);
+
+            if (!$result->isSuccess()) {
+                $this->error($result->getErrorMessages());
                 $extensionDir->delete();
                 return self::FAILURE;
             }
@@ -83,13 +91,12 @@ class CreateCommand extends Command
             ]);
 
             if (!$result->isSuccess()) {
-                array_map(
-                    fn(string $message) => $this->error($message),
-                    $result->getErrorMessages()
-                );
+                $this->error($result->getErrorMessages());
+                $extensionDir->delete();
 
                 return self::FAILURE;
             }
+
         } catch (Throwable $exception) {
             $extensionDir?->delete();
             throw $exception;
@@ -114,22 +121,51 @@ class CreateCommand extends Command
     }
 
     /**
-     * @return Directory|null
+     * Спрашиваем наименование расширения
+     *
+     * @return string
      */
-    private function getFrontBootDirectory(): Directory|null
+    private function askName(): string
     {
-        $path = Application::getDocumentRoot() . '/local/frontboot/';
-        $directory = new Directory($path);
+        do {
+            $name = (string)$this->ask('Extension name');
 
-        if (!$directory->isExists()) {
-            $directory->create();
-
-            if (!$directory->isExists()) {
-                return null;
+            if (!ExtensionNameValidator::validate($name)) {
+                $this->error('Extension name is invalid');
+                $name = '';
             }
-        }
+        } while (!mb_strlen($name));
 
-        return $directory;
+        return $name;
+    }
+
+    /**
+     * Пользователь выбирает тип расширения
+     *
+     * @return string
+     */
+    private function choiceType(): string
+    {
+        return (string)$this->output->choice(
+            "Тип установки",
+            [
+                'clean',
+                'vue vite'
+            ],
+            'clean'
+        );
+    }
+
+    /**
+     * @param string $type
+     * @return ExtensionGeneratorInterface|null
+     */
+    private function createGenerator(string $type): ExtensionGeneratorInterface|null
+    {
+        $factory = new GeneratorFactory;
+        $factory->setStyle($this->getOutput());
+
+        return $factory->create($type);
     }
 
     /**

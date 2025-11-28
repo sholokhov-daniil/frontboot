@@ -10,10 +10,16 @@ return [
         ],
         'readonly' => true,
     ],
+    'extension-generators' => [
+        'value' => [
+            'vue vite' => \Sholokhov\FrontBoot\Generator\Extension\Strategy\VueViteStrategy::class,
+        ],
+        'readonly' => true,
+    ],
     'extensions' => [
         'value' => [
             'frontboot.core' => __DIR__ . DIRECTORY_SEPARATOR . 'js' . DIRECTORY_SEPARATOR . 'core',
         ],
         'readonly' => true,
-    ]
+    ],
 ];
