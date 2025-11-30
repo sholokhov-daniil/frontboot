@@ -1,7 +1,7 @@
 import { Language, LanguageInterface } from "./lang/language";
 import type { FrontBootApi } from './globals';
 
-class Core implements FrontBootApi{
+window.FrontBoot  = new class Core implements FrontBootApi{
     #extensions: Map<string, any>;
     #lang: LanguageInterface;
 
@@ -21,10 +21,4 @@ class Core implements FrontBootApi{
     get extensions(): Map<string, object|Function> {
         return this.#extensions;
     }
-}
-
-const FrontBoot = new Core;
-
-if (typeof window !== 'undefined') {
-    (window as any).FrontBoot = FrontBoot;
 }
