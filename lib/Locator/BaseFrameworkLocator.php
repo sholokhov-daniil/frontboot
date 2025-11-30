@@ -2,6 +2,8 @@
 
 namespace Sholokhov\FrontBoot\Locator;
 
+use Bitrix\Main\Diag\Debug;
+use SplFileInfo;
 use Throwable;
 
 /**
@@ -20,20 +22,24 @@ class BaseFrameworkLocator extends AbstractLocator
      * @var string 
      */
     protected string $distPath = DIRECTORY_SEPARATOR . 'dist';
-    
+
     /**
      * Передает список всех скомпилированных js файлов
      *
+     * @param string $folder Директория размещения скриптов
      * @return array
      */
-    public function getJs(): array
+    public function getJs(string $folder = 'js'): array
     {
         $files = [];
 
         try {
-            $path = $this->getDistSubFolder('js');
-            $files = $this->getFiles($path);
-        } catch (Throwable $e) {
+            $path = $this->getDistSubFolder($folder);
+            $files = $this->getFiles(
+                $path,
+                fn(SplFileInfo $file) => $file->getExtension() === 'js'
+            );
+        } catch (Throwable) {
         }
 
         return $files;
@@ -42,15 +48,19 @@ class BaseFrameworkLocator extends AbstractLocator
     /**
      * Передает список всех скомпилированных css файлов
      *
+     * @param string $folder Директория размещения стилей
      * @return array
      */
-    public function getCss(): array
+    public function getCss(string $folder = 'css'): array
     {
         $files = [];
 
         try {
-            $path = $this->getDistSubFolder('css');
-            $files = $this->getFiles($path);
+            $path = $this->getDistSubFolder($folder);
+            $files = $this->getFiles(
+                $path,
+                fn(SplFileInfo $file) => $file->getExtension() === 'css'
+            );
         } catch (Throwable) {
         }
 

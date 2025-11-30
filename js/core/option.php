@@ -10,7 +10,7 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
 $locator = new BaseLocator(__DIR__);
 
 $extension = new Config;
-$extension->js = $locator->getJs();
+$extension->js = $locator->getJs('dist');
 $extension->skipCore = false;
 $extension->autoload = true;
 

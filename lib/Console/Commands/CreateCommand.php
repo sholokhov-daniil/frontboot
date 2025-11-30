@@ -2,15 +2,18 @@
 
 namespace Sholokhov\FrontBoot\Console\Commands;
 
+use Bitrix\Main\Result;
 use CJSCore;
-use Sholokhov\FrontBoot\Validator\ExtensionNameValidator;
 use Throwable;
 use ErrorException;
 
+use Sholokhov\FrontBoot\App;
+use Sholokhov\FrontBoot\Generator\Extension\ExtensionGeneratorInterface;
+use Sholokhov\FrontBoot\Generator\Extension\GeneratorFactory;
+use Sholokhov\FrontBoot\Validator\ExtensionNameValidator;
 use Sholokhov\FrontBoot\Models\ExtensionTable;
 use Sholokhov\FrontBoot\Console\InteractsWithOutTrait;
 
-use Bitrix\Main\Application;
 use Bitrix\Main\IO\Directory;
 
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -35,27 +38,17 @@ class CreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        do {
-            $name = (string)$this->ask('Extension name');
-
-            if (!ExtensionNameValidator::validate($name)) {
-                $this->warning('Extension name is invalid');
-                $name = '';
-            }
-        } while (!mb_strlen($name));
-
-        $description = $this->ask('Extension description');
-
+        $name = $this->askName();
+        $description = (string)$this->ask('Description');
         $extensionDir = null;
 
         try {
-            // Создать директорию, для расширения
             if (CJSCore::IsExtRegistered($name)) {
                 $this->error('The extension has already been registered');
                 return self::FAILURE;
             }
 
-            $directory = $this->getFrontBootDirectory();
+            $directory = App::getJsDirectory();
             if (!$directory) {
                 $this->error('Error creating a directory with extensions');
                 return self::FAILURE;
@@ -63,73 +56,113 @@ class CreateCommand extends Command
 
             $extensionDir = $this->createExtensionDirectory($directory, $name);
 
-            $result = CopyDirFiles(
-                dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'examples' . DIRECTORY_SEPARATOR . 'extension',
-                $extensionDir->getPhysicalPath(),
-                true,
-                true
-            );
+            $type = $this->choiceType();
+            $generator = $this->createGenerator($type);
 
-            if (!$result) {
-                $this->error('Error generating the extension');
+            if (!$generator) {
+                $this->error('Installer not found');
                 $extensionDir->delete();
                 return self::FAILURE;
             }
 
-            $result = ExtensionTable::add([
+            $this->info([
+                sprintf('The generation of the %s extension has been started', $type),
+                'It may take some time...'
+            ]);
+
+            $generatorResult = $generator->generate($extensionDir);
+
+            if (!$generatorResult->isSuccess()) {
+                $this->error($generatorResult->getErrorMessages());
+                $extensionDir->delete();
+                return self::FAILURE;
+            }
+
+            $registrationResult = ExtensionTable::add([
                 'ID' => $name,
                 'PATH' => $extensionDir->getPath(),
                 'DESCRIPTION' => $description,
             ]);
 
-            if (!$result->isSuccess()) {
-                array_map(
-                    fn(string $message) => $this->error($message),
-                    $result->getErrorMessages()
-                );
+            if (!$registrationResult->isSuccess()) {
+                $this->error($registrationResult->getErrorMessages());
+                $extensionDir->delete();
 
                 return self::FAILURE;
             }
+
         } catch (Throwable $exception) {
             $extensionDir?->delete();
             throw $exception;
         }
 
-
-        $this->frame([
-            " Success!",
-            " Extension $name created",
-            "",
-            " Include extension in php",
-            " CJSCore::Init(['$name']);",
-            "",
-            " Include extension in js",
-            " BX.loadExt('$name').then(() => {\n     // The code after loading\n });",
-            "",
-            " Extension Directory",
-            " {$extensionDir->getPath()}"
-        ]);
+        $this->frame(
+            array_merge(
+                [
+                    " Success!",
+                    "Extension $name created",
+                    "",
+                    "Include extension in php:",
+                    " CJSCore::Init(['$name']);",
+                    "",
+                    "Include extension in js:",
+                    "BX.loadExt('$name').then(() => {\n     // The code after loading\n });",
+                    "",
+                    "Extension Directory:",
+                    "{$extensionDir->getPath()}"
+                ],
+                $generatorResult->getData()
+            )
+        );
 
         return self::SUCCESS;
     }
 
     /**
-     * @return Directory|null
+     * Спрашиваем наименование расширения
+     *
+     * @return string
      */
-    private function getFrontBootDirectory(): Directory|null
+    private function askName(): string
     {
-        $path = Application::getDocumentRoot() . '/local/frontboot/';
-        $directory = new Directory($path);
+        do {
+            $name = (string)$this->ask('Extension name');
 
-        if (!$directory->isExists()) {
-            $directory->create();
-
-            if (!$directory->isExists()) {
-                return null;
+            if (!ExtensionNameValidator::validate($name)) {
+                $this->error('Extension name is invalid');
+                $name = '';
             }
-        }
+        } while (!mb_strlen($name));
 
-        return $directory;
+        return $name;
+    }
+
+    /**
+     * Пользователь выбирает тип расширения
+     *
+     * @return string
+     */
+    private function choiceType(): string
+    {
+        $generators = App::config()->get('extension-generators') ?: [];
+
+        return (string)$this->output->choice(
+            "Тип установки",
+            array_keys($generators),
+            array_key_first($generators),
+        );
+    }
+
+    /**
+     * @param string $type
+     * @return ExtensionGeneratorInterface|null
+     */
+    private function createGenerator(string $type): ExtensionGeneratorInterface|null
+    {
+        $factory = new GeneratorFactory;
+        $factory->setStyle($this->getOutput());
+
+        return $factory->create($type);
     }
 
     /**
