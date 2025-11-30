@@ -34,16 +34,18 @@ abstract class AbstractLocator
     /**
      * Производит поиск всех js файлов расширения требующих инициализацию
      *
+     * @param string $folder
      * @return array
      */
-    abstract public function getJs(): array;
+    abstract public function getJs(string $folder = 'js'): array;
 
     /**
      * Производит поиск всех css файлов расширения требующих инициализацию
      *
+     * @param string $folder
      * @return array
      */
-    abstract public function getCss(): array;
+    abstract public function getCss(string $folder = 'css'): array;
 
     /**
      * Путь до хранения языковых файлов
