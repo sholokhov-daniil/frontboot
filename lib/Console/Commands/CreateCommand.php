@@ -2,6 +2,7 @@
 
 namespace Sholokhov\FrontBoot\Console\Commands;
 
+use Bitrix\Main\Result;
 use CJSCore;
 use Throwable;
 use ErrorException;
@@ -69,22 +70,22 @@ class CreateCommand extends Command
                 'It may take some time...'
             ]);
 
-            $result = $generator->generate($extensionDir);
+            $generatorResult = $generator->generate($extensionDir);
 
-            if (!$result->isSuccess()) {
-                $this->error($result->getErrorMessages());
+            if (!$generatorResult->isSuccess()) {
+                $this->error($generatorResult->getErrorMessages());
                 $extensionDir->delete();
                 return self::FAILURE;
             }
 
-            $result = ExtensionTable::add([
+            $registrationResult = ExtensionTable::add([
                 'ID' => $name,
                 'PATH' => $extensionDir->getPath(),
                 'DESCRIPTION' => $description,
             ]);
 
-            if (!$result->isSuccess()) {
-                $this->error($result->getErrorMessages());
+            if (!$registrationResult->isSuccess()) {
+                $this->error($registrationResult->getErrorMessages());
                 $extensionDir->delete();
 
                 return self::FAILURE;
@@ -95,19 +96,24 @@ class CreateCommand extends Command
             throw $exception;
         }
 
-        $this->frame([
-            " Success!",
-            " Extension $name created",
-            "",
-            " Include extension in php",
-            " CJSCore::Init(['$name']);",
-            "",
-            " Include extension in js",
-            " BX.loadExt('$name').then(() => {\n     // The code after loading\n });",
-            "",
-            " Extension Directory",
-            " {$extensionDir->getPath()}"
-        ]);
+        $this->frame(
+            array_merge(
+                [
+                    " Success!",
+                    "Extension $name created",
+                    "",
+                    "Include extension in php:",
+                    " CJSCore::Init(['$name']);",
+                    "",
+                    "Include extension in js:",
+                    "BX.loadExt('$name').then(() => {\n     // The code after loading\n });",
+                    "",
+                    "Extension Directory:",
+                    "{$extensionDir->getPath()}"
+                ],
+                $generatorResult->getData()
+            )
+        );
 
         return self::SUCCESS;
     }

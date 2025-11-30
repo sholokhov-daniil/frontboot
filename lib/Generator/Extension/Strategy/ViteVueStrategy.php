@@ -48,6 +48,15 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
             return $result->addError(new Error('No configuration found'));
         }
 
+        $result->setData([
+            "",
+            "Appeal to the extension",
+            "FrontBoot.extensions.get('{$directory->getName()}')",
+            "",
+            "Go to the directory and run the command:",
+            "npm install && npm run build"
+        ]);
+
         return $result;
     }
 
