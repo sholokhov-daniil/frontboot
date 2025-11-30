@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 
 FrontBoot.extensions.set(
-    '#EXTENSION_ID#',
+    import.meta.env.VITE_EXTENSION_ID,
     {
         app: null,
 
