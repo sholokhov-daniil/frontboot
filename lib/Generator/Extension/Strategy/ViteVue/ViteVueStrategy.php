@@ -1,9 +1,8 @@
 <?php
 
-namespace Sholokhov\FrontBoot\Generator\Extension\Strategy;
+namespace Sholokhov\FrontBoot\Generator\Extension\Strategy\ViteVue;
 
-use Bitrix\Main\IO\File;
-use Bitrix\Main\IO\FileNotFoundException;
+use Exception;
 use Sholokhov\FrontBoot\App;
 use Sholokhov\FrontBoot\Console\Terminal;
 use Sholokhov\FrontBoot\Generator\Extension\ExtensionGeneratorInterface;
@@ -11,8 +10,10 @@ use Sholokhov\FrontBoot\Generator\Extension\ExtensionGeneratorInterface;
 use Bitrix\Main\Error;
 use Bitrix\Main\Result;
 use Bitrix\Main\IO\Directory;
-
+use Bitrix\Main\IO\File;
+use Bitrix\Main\IO\FileNotFoundException;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
  * Генерирует Vue vite расширение
@@ -24,9 +25,24 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
      */
     protected readonly Terminal $terminal;
 
-    public function __construct()
+    /**
+     * Вывод информации в консоль
+     * 
+     * @var SymfonyStyle|null
+     */
+    protected readonly SymfonyStyle $output;
+
+    /**
+     * Ручная настройка vue
+     *
+     * @var boolean
+     */
+    protected bool $manual = false;
+
+    public function __construct(SymfonyStyle $output)
     {
         $this->terminal = new Terminal;
+        $this->output = $output;
     }
 
     /**
@@ -44,9 +60,9 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
             return $result->addError(new Error('Error installed: ' . $process->getErrorOutput()));
         }
 
-        if (!$this->configuration($directory)) {
-            return $result->addError(new Error('No configuration found'));
-        }
+        // if (!$this->configuration($directory)) {
+        //     return $result->addError(new Error('No configuration found'));
+        // }
 
         $result->setData([
             "",
@@ -68,7 +84,17 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
      */
     private function run(Directory $directory): Process
     {
-        $command = $this->getCommand($directory);
+        $version = $this->getVersion();
+        $features = $this->getFeatures();
+
+        $builder = new ViteVueCommandBuilder($directory);
+
+        $builder->setFeatures($features);
+        $builder->setVersion($version);
+        $builder->setProjectName($directory->getName());
+
+        $command = $builder->create();
+
         return $this->terminal->command($command);
     }
 
@@ -133,17 +159,56 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
     }
 
     /**
-     * Создает консольную команду, для запуска установки vue vite
-     *
-     * @param Directory $directory
+     * Список устанавливаемых расширений
+     * 
+     * @return Feature[]
+     */
+    private function getFeatures(): array
+    {
+        $default = $this->output->confirm(
+            'Should I use the default settings?',
+            true
+        );
+
+        if ($default) {
+            return [Feature::Default];
+        }
+
+        foreach (Feature::cases() as $item) {
+            if ($item->value === 'default') {
+                continue;
+            }
+
+            $features[$item->value] = $item->getDescription();
+        }
+
+        $choice = $this->output->choice(
+            'Select features to include in your project: (Specify it separated by commas)',
+            $features,
+            null,
+            true
+        );
+
+        return array_map(
+            static function (string $name) {
+                $feature = Feature::tryFrom($name);
+                if (!$feature) {
+                    throw new Exception("Feature '$name' not supported");
+                }
+
+                return $feature;
+            },
+            $choice
+        );
+    }
+
+    /**
+     * Версия проекта
+     * 
      * @return string
      */
-    private function getCommand(Directory $directory): string
+    private function getVersion(): string
     {
-        return sprintf(
-            "cd %s && yes | npm create vue@latest %s -- --default",
-            escapeshellarg(dirname($directory->getPhysicalPath())),
-            $directory->getName()
-        );
+        return (string)$this->output->ask('Version: ', 'latest');
     }
 }

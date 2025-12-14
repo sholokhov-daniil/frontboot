@@ -147,7 +147,7 @@ class CreateCommand extends Command
         $generators = App::config()->get('extension-generators') ?: [];
 
         return (string)$this->output->choice(
-            "Тип установки",
+            "Installation type",
             array_keys($generators),
             array_key_first($generators),
         );
