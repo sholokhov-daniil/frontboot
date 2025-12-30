@@ -1,8 +1,10 @@
 <?php
 
-namespace Sholokhov\FrontBoot\Generator\Extension\Strategy\ViteVue;
+namespace Sholokhov\FrontBoot\Generator\Extension\Strategy\Vite\Vue;
 
+use Bitrix\Main\Diag\Debug;
 use Exception;
+
 use Sholokhov\FrontBoot\App;
 use Sholokhov\FrontBoot\Console\Terminal;
 use Sholokhov\FrontBoot\Generator\Extension\ExtensionGeneratorInterface;
@@ -12,6 +14,7 @@ use Bitrix\Main\Result;
 use Bitrix\Main\IO\Directory;
 use Bitrix\Main\IO\File;
 use Bitrix\Main\IO\FileNotFoundException;
+use Sholokhov\Frontboot\Generator\Extension\Strategy\Vite\ViteConfigModifier;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -60,9 +63,8 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
             return $result->addError(new Error('Error installed: ' . $process->getErrorOutput()));
         }
 
-        // if (!$this->configuration($directory)) {
-        //     return $result->addError(new Error('No configuration found'));
-        // }
+        $this->configuration($directory);
+        $this->modifiyConfig($directory);
 
         $result->setData([
             "",
@@ -77,10 +79,23 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
     }
 
     /**
+     * Модифицировать конфигурацию vite
+     *
+     * @param Directory $directory
+     * @return void
+     * @throws FileNotFoundException
+     */
+    private function modifiyConfig(Directory $directory): void
+    {
+        (new ViteConfigModifier($directory))->modify();
+    }
+
+    /**
      * Запустить генерацию
      *
      * @param Directory $directory
      * @return Process
+     * @throws Exception
      */
     private function run(Directory $directory): Process
     {
@@ -127,6 +142,12 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
     private function copy(Directory $directory): bool
     {
         $appDir = App::getRootDir();
+
+        Debug::dumpToFile([
+            'F' => $appDir->getPhysicalPath() . DIRECTORY_SEPARATOR . 'examples' . DIRECTORY_SEPARATOR . 'vite-vue',
+            'T' => $directory->getPhysicalPath()
+        ]);
+
         return CopyDirFiles(
             $appDir->getPhysicalPath() . DIRECTORY_SEPARATOR . 'examples' . DIRECTORY_SEPARATOR . 'vite-vue',
             $directory->getPhysicalPath(),

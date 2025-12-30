@@ -1,6 +1,6 @@
 <?php
 
-namespace Sholokhov\FrontBoot\Generator\Extension\Strategy\ViteVue;
+namespace Sholokhov\FrontBoot\Generator\Extension\Strategy\Vite\Vue;
 
 enum Feature: string
 {
