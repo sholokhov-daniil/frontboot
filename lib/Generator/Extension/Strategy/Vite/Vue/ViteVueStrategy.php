@@ -2,19 +2,20 @@
 
 namespace Sholokhov\FrontBoot\Generator\Extension\Strategy\Vite\Vue;
 
-use Bitrix\Main\Diag\Debug;
 use Exception;
 
 use Sholokhov\FrontBoot\App;
 use Sholokhov\FrontBoot\Console\Terminal;
 use Sholokhov\FrontBoot\Generator\Extension\ExtensionGeneratorInterface;
+use Sholokhov\Frontboot\Generator\Extension\Strategy\Vite\ViteConfigModifier;
+use Sholokhov\FrontBoot\Generator\Extension\Strategy\Vue\VueCoreModifier;
 
 use Bitrix\Main\Error;
 use Bitrix\Main\Result;
 use Bitrix\Main\IO\Directory;
 use Bitrix\Main\IO\File;
 use Bitrix\Main\IO\FileNotFoundException;
-use Sholokhov\Frontboot\Generator\Extension\Strategy\Vite\ViteConfigModifier;
+
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -64,7 +65,6 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
         }
 
         $this->configuration($directory);
-        $this->modifiyConfig($directory);
 
         $result->setData([
             "",
@@ -88,6 +88,17 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
     private function modifiyConfig(Directory $directory): void
     {
         (new ViteConfigModifier($directory))->modify();
+    }
+
+    /**
+     * Модифицирует ядро(стартовую точку) js приложения
+     *
+     * @param Directory $directory
+     * @return void
+     */
+    private function modifyCore(Directory $directory): void
+    {
+        (new VueCoreModifier($directory))->modify();
     }
 
     /**
@@ -117,20 +128,22 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
      * Производим конфигурацию vue приложения
      *
      * @param Directory $directory
-     * @return bool
+     * @return void
      * @throws FileNotFoundException
      */
-    private function configuration(Directory $directory): bool
+    private function configuration(Directory $directory): void
     {
         if (!$this->copy($directory)) {
-            return false;
+            return;
         }
 
         $variables = [
             '#EXTENSION_ID#' => $directory->getName()
         ];
 
-        return $this->replaceVariables($directory, $variables);
+        $this->replaceVariables($directory, $variables);
+        $this->modifiyConfig($directory);
+        $this->modifyCore($directory);
     }
 
     /**
@@ -141,15 +154,8 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
      */
     private function copy(Directory $directory): bool
     {
-        $appDir = App::getRootDir();
-
-        Debug::dumpToFile([
-            'F' => $appDir->getPhysicalPath() . DIRECTORY_SEPARATOR . 'examples' . DIRECTORY_SEPARATOR . 'vite-vue',
-            'T' => $directory->getPhysicalPath()
-        ]);
-
         return CopyDirFiles(
-            $appDir->getPhysicalPath() . DIRECTORY_SEPARATOR . 'examples' . DIRECTORY_SEPARATOR . 'vite-vue',
+            App::getRootDir()->getPhysicalPath() . DIRECTORY_SEPARATOR . 'examples' . DIRECTORY_SEPARATOR . 'vite-vue',
             $directory->getPhysicalPath(),
             true,
             true
@@ -181,8 +187,9 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
 
     /**
      * Список устанавливаемых расширений
-     * 
+     *
      * @return Feature[]
+     * @throws Exception
      */
     private function getFeatures(): array
     {
