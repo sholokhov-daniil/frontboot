@@ -2,9 +2,9 @@
 
 namespace Sholokhov\FrontBoot\Generator\Extension\Strategy\Vue;
 
-use Bitrix\Main\IO\Directory;
 use RuntimeException;
 
+use Bitrix\Main\IO\Directory;
 use Bitrix\Main\IO\File;
 
 /**
@@ -33,6 +33,65 @@ class VueCoreModifier
             return $this;
         }
 
+        // Пробуем разные шаблоны
+        if ($this->hasStandardTemplate($content)) {
+            $content = $this->replaceStandardTemplate($content);
+        } elseif ($this->hasSimpleTemplate($content)) {
+            $content = $this->replaceSimpleTemplate($content);
+        } elseif ($this->hasInlineTemplate($content)) {
+            $content = $this->replaceInlineTemplate($content);
+        } else {
+            // Если не нашли стандартные шаблоны, пытаемся найти и заменить любым способом
+            $content = $this->replaceGenericAppCreation($content);
+        }
+
+        file_put_contents($this->file->getPath(), $content);
+        return $this;
+    }
+
+    /**
+     * Проверяет, есть ли стандартный шаблон с const app = createApp(App)
+     *
+     * @param string $content
+     * @return bool
+     */
+    private function hasStandardTemplate(string $content): bool
+    {
+        return preg_match('/const\s+app\s*=\s*createApp\(App\)/', $content) &&
+            preg_match('/app\.mount\([\'"]?#app[\'"]?\)/', $content);
+    }
+
+    /**
+     * Проверяет, есть ли простой шаблон (без use вызовов)
+     *
+     * @param string $content
+     * @return bool
+     */
+    private function hasSimpleTemplate(string $content): bool
+    {
+        // Шаблон без промежуточных use вызовов
+        return preg_match('/const\s+app\s*=\s*createApp\(App\)\s*\n\s*app\.mount\([\'"]?#app[\'"]?\)/s', $content);
+    }
+
+    /**
+     * Проверяет, есть ли inline шаблон (createApp(App).mount('#app'))
+     *
+     * @param string $content
+     * @return bool
+     */
+    private function hasInlineTemplate(string $content): bool
+    {
+        return preg_match('/createApp\s*\(\s*App\s*\)\s*\.\s*mount\s*\(\s*[\'"]?#app[\'"]?\s*\)/', $content);
+    }
+
+    /**
+     * Заменяет стандартный шаблон (с use вызовами)
+     *
+     * @param string $content
+     * @return string
+     */
+    private function replaceStandardTemplate(string $content): string
+    {
         $lines = explode("\n", $content);
         $result = [];
         $foundAppBlock = false;
@@ -84,8 +143,72 @@ class VueCoreModifier
             }
         }
 
-        file_put_contents($this->file->getPath(), implode("\n", $result));
-        return $this;
+        return implode("\n", $result);
+    }
+
+    /**
+     * Заменяет простой шаблон (без use вызовов)
+     *
+     * @param string $content
+     * @return string
+     */
+    private function replaceSimpleTemplate(string $content): string
+    {
+        $pattern = '/(const\s+app\s*=\s*createApp\(App\))\s*\n\s*(app\.mount\([\'"]?#app[\'"]?\))/';
+
+        if (preg_match($pattern, $content, $matches)) {
+            $frontbootBlock = $this->generateFrontbootBlockFromStatements([]);
+            return preg_replace($pattern, $frontbootBlock, $content, 1);
+        }
+
+        return $content;
+    }
+
+    /**
+     * Заменяет inline шаблон (createApp(App).mount('#app'))
+     *
+     * @param string $content
+     * @return string
+     */
+    private function replaceInlineTemplate(string $content): string
+    {
+        $pattern = '/(createApp\s*\(\s*App\s*\)\s*\.\s*mount\s*\(\s*[\'"]?#app[\'"]?\s*\))/';
+
+        if (preg_match($pattern, $content, $matches)) {
+            $frontbootBlock = $this->generateFrontbootBlockFromStatements([]);
+            return preg_replace($pattern, $frontbootBlock, $content, 1);
+        }
+
+        return $content;
+    }
+
+    /**
+     * Общий метод замены для любых форматов создания приложения
+     *
+     * @param string $content
+     * @return string
+     */
+    private function replaceGenericAppCreation(string $content): string
+    {
+        // Ищем любой вызов createApp
+        $pattern = '/(createApp\s*\(\s*App\s*(?:,\s*[^)]+)?\s*\).*?mount\s*\(\s*[\'"]?#app[\'"]?\s*\))/s';
+
+        if (preg_match($pattern, $content, $matches)) {
+            $oldBlock = $matches[1];
+
+            // Пытаемся извлечь use вызовы из блока
+            $useStatements = [];
+            if (preg_match_all('/app\.use\(([^)]+)\)/', $oldBlock, $useMatches)) {
+                foreach ($useMatches[0] as $useCall) {
+                    $useStatements[] = $useCall;
+                }
+            }
+
+            $frontbootBlock = $this->generateFrontbootBlockFromStatements($useStatements);
+            return str_replace($oldBlock, $frontbootBlock, $content);
+        }
+
+        return $content;
     }
 
     /**
@@ -97,9 +220,13 @@ class VueCoreModifier
     private function generateFrontbootBlockFromStatements(array $useStatements): string
     {
         $formattedUses = '';
-        foreach ($useStatements as $statement) {
-            // Форматируем вызов, добавляя правильные отступы
-            $formattedUses .= "      " . $statement . "\n";
+        if (!empty($useStatements)) {
+            foreach ($useStatements as $statement) {
+                // Форматируем вызов, добавляя правильные отступы
+                $formattedUses .= "      " . trim($statement) . "\n";
+            }
+            // Добавляем пустую строку после use вызовов, если они есть
+            $formattedUses .= "\n";
         }
 
         return <<<JS
@@ -112,7 +239,6 @@ FrontBoot.extensions.set(
       this.unmount();
 
       const app = createApp(App, data);
-
 {$formattedUses}
       app.mount(node);
       
@@ -142,10 +268,10 @@ JS;
         }
 
         $files = [
-            $srcPath . '/main.js',
-            $srcPath . '/main.ts',
-            $srcPath . '/main.jsx',
-            $srcPath . '/main.tsx',
+            $srcPath . DIRECTORY_SEPARATOR . 'main.js',
+            $srcPath . DIRECTORY_SEPARATOR . 'main.ts',
+            $srcPath . DIRECTORY_SEPARATOR . 'main.jsx',
+            $srcPath . DIRECTORY_SEPARATOR . 'main.tsx',
         ];
 
         foreach ($files as $filePath) {
