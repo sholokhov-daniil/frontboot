@@ -15,7 +15,7 @@ return [
     'extension-generators' => [
         'value' => [
             'clean' => \Sholokhov\FrontBoot\Generator\Extension\Strategy\DefaultStrategy::class,
-            'vite-vue' => \Sholokhov\FrontBoot\Generator\Extension\Strategy\ViteVueStrategy::class,
+            'vite-vue' => \Sholokhov\FrontBoot\Generator\Extension\Strategy\Vite\Vue\ViteVueStrategy::class,
         ],
         'readonly' => true,
     ],

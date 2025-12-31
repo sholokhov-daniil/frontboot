@@ -15,6 +15,13 @@ class Terminal
     private bool $wait = true;
 
     /**
+     * Время ожидания ответа
+     * 
+     * @var int
+     */
+    private int $timeout = 600;
+
+    /**
      * Выполнение команды.
      *
      * @param string $command
@@ -23,10 +30,16 @@ class Terminal
     public function command(string $command): Process
     {
         $process = Process::fromShellCommandline($command);
+        $process->setTimeout($this->timeout);
+
+        // if (Process::isTtySupported()) {
+            // $process->setTty(true);
+        // }
+
         $process->run();
 
         if ($this->wait) {
-            while ($process->isRunning()) ;
+            while ($process->isRunning());
         }
 
         return $process;
@@ -44,4 +57,15 @@ class Terminal
         return $this;
     }
 
+    /**
+     * Время ожидания ответа
+     * 
+     * @param int $timeout
+     * @return Terminal
+     */
+    public function setTimeout(int $timeout): self
+    {
+        $this->timeout = $timeout;
+        return $this;
+    }
 }
