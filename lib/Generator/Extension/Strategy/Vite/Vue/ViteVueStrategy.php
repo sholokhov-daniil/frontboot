@@ -32,7 +32,7 @@ class ViteVueStrategy implements ExtensionGeneratorInterface
     /**
      * Вывод информации в консоль
      * 
-     * @var SymfonyStyle|null
+     * @var SymfonyStyle
      */
     protected readonly SymfonyStyle $output;
 
