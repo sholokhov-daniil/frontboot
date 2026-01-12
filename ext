@@ -10,6 +10,8 @@ $_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__, 3);
 
 require_once($_SERVER['DOCUMENT_ROOT'] . "/bitrix/modules/main/include/prolog_before.php");
 
+@include __DIR__ . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+
 $app = new Application;
 $config = Configuration::getInstance('sholokhov.frontboot')->get('console') ?: [];
 $commandList = $config['commands'] ?? [];
